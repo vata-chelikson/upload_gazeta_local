@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Создать пост</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group { margin-bottom: 16px; }
+        label {
+            display: block;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: var(--tg-theme-hint-color, #888);
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-button-color, #2481cc);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #000);
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input[type="file"] { display: block; margin-top: 5px; }
+        .btn {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.7; }
+        .status {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #888);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h2 style="margin-bottom:20px;">📝 Заготовка поста</h2>
+    <div class="form-group">
+        <label>Заголовок</label>
+        <input type="text" id="title" placeholder="Введите заголовок">
+    </div>
+    <div class="form-group">
+        <label>Текст поста</label>
+        <textarea id="text" placeholder="Введите основной текст"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Фото (JPG/PNG)</label>
+        <input type="file" id="photoInput" accept="image/*">
+    </div>
+    <button class="btn" id="sendBtn">Отправить</button>
+    <div id="status" class="status"></div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const sendBtn = document.getElementById('sendBtn');
+        const statusDiv = document.getElementById('status');
+
+        sendBtn.addEventListener('click', function() {
+            const title = document.getElementById('title').value.trim();
+            const text = document.getElementById('text').value.trim();
+            const photoFile = document.getElementById('photoInput').files[0];
+
+            if (!title || !text || !photoFile) {
+                statusDiv.textContent = '❌ Заполните все поля и выберите фото';
+                return;
+            }
+
+            statusDiv.textContent = '⏳ Обработка...';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const payload = {
+                    title: title,
+                    text: text,
+                    photo: e.target.result
+                };
+                tg.sendData(JSON.stringify(payload));
+                statusDiv.textContent = '✅ Отправлено! Пост будет опубликован завтра в 6:00';
+                tg.close();
+            };
+            reader.onerror = function() {
+                statusDiv.textContent = '❌ Ошибка чтения файла';
+            };
+            reader.readAsDataURL(photoFile);
+        });
+    </script>
+</body>
+</html>
